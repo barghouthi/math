@@ -1,0 +1,216 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Math Practice</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 0;
+            padding: 0;
+            height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            text-align: center;
+        }
+        
+        .menu {
+            display: flex;
+            flex-direction: column;
+            gap: 20px;
+        }
+        
+        .menu h1 {
+            font-size: 3em;
+            margin-bottom: 30px;
+        }
+        
+        .menu button {
+            font-size: 2em;
+            padding: 20px 40px;
+            border: 2px solid #333;
+            background: white;
+            cursor: pointer;
+            border-radius: 10px;
+            transition: background-color 0.3s;
+        }
+        
+        .menu button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .problem {
+            font-size: 8em;
+            margin: 20px 0;
+        }
+        
+        .blue-answer {
+            color: blue;
+        }
+        
+        .counter {
+            position: absolute;
+            top: 20px;
+            left: 20px;
+            font-size: 2em;
+            color: #666;
+        }
+        
+        .back-button {
+            position: absolute;
+            top: 20px;
+            right: 20px;
+            font-size: 1.5em;
+            padding: 10px 20px;
+            border: 2px solid #333;
+            background: white;
+            cursor: pointer;
+            border-radius: 5px;
+        }
+        
+        .back-button:hover {
+            background-color: #f0f0f0;
+        }
+        
+        .hidden {
+            display: none;
+        }
+        
+
+    </style>
+</head>
+<body>
+    <div id="menu" class="menu">
+        <h1>Choose Your Practice</h1>
+        <button onclick="startPractice('addition', 10)">Addition up to 10</button>
+        <button onclick="startPractice('addition', 20)">Addition 10-20</button>
+        <button onclick="startPractice('addition-multiples', 100)">Addition Multiples of 10 (up to 100)</button>
+        <button onclick="startPractice('subtraction', 20)">Subtraction</button>
+    </div>
+    
+    <div id="practice" class="hidden">
+        <div class="counter" id="counter">0</div>
+        <button class="back-button" onclick="goBack()">Menu</button>
+        <div class="problem" id="problem"></div>
+    </div>
+
+    <script>
+        let currentAnswer = 0;
+        let showingAnswer = false;
+        let problemCount = 0;
+        let allProblems = [];
+        let currentMode = '';
+        let currentMax = 0;
+
+        function generateProblems(operation, maxSum) {
+            const problems = [];
+            let minSum = maxSum === 20 ? 10 : 1;
+            
+            if (operation === 'addition-multiples') {
+                // Generate multiples of 10 up to maxSum
+                const multiples = [];
+                for (let i = 10; i <= maxSum; i += 10) {
+                    multiples.push(i);
+                }
+                
+                // Generate all combinations of multiples that sum up to maxSum
+                for (let i = 0; i < multiples.length; i++) {
+                    for (let j = i; j < multiples.length; j++) {
+                        let sum = multiples[i] + multiples[j];
+                        if (sum <= maxSum) {
+                            problems.push([multiples[i], multiples[j], '+']);
+                            // Add the reverse if different numbers
+                            if (multiples[i] !== multiples[j]) {
+                                problems.push([multiples[j], multiples[i], '+']);
+                            }
+                        }
+                    }
+                }
+            } else {
+                for (let sum = minSum; sum <= maxSum; sum++) {
+                    if (operation === 'addition') {
+                        for (let num1 = 0; num1 <= sum; num1++) {
+                            let num2 = sum - num1;
+                            problems.push([num1, num2, '+']);
+                        }
+                    } else if (operation === 'subtraction') {
+                        // For subtraction, we want results from 1 to maxSum
+                        // All operands (minuend and subtrahend) should be 0-20
+                        // At least one operand should be < 10
+                        for (let result = 1; result <= maxSum; result++) {
+                            for (let subtrahend = 0; subtrahend <= 20; subtrahend++) {
+                                let minuend = result + subtrahend;
+                                if (minuend <= 20 && (minuend < 10 || subtrahend < 10)) {
+                                    problems.push([minuend, subtrahend, '-']);
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            return problems;
+        }
+
+        function startPractice(operation, maxNum) {
+            currentMode = operation;
+            currentMax = maxNum;
+            allProblems = generateProblems(operation, maxNum);
+            problemCount = 0;
+            
+            document.getElementById('menu').classList.add('hidden');
+            document.getElementById('practice').classList.remove('hidden');
+            
+            generateProblem();
+        }
+
+        function goBack() {
+            document.getElementById('practice').classList.add('hidden');
+            document.getElementById('menu').classList.remove('hidden');
+            showingAnswer = false;
+        }
+
+        function generateProblem() {
+            // Pick uniformly from all possible problems
+            const randomIndex = Math.floor(Math.random() * allProblems.length);
+            const [num1, num2, operator] = allProblems[randomIndex];
+            
+            if (operator === '+') {
+                currentAnswer = num1 + num2;
+            } else {
+                currentAnswer = num1 - num2;
+            }
+            
+            // Increment and display counter
+            problemCount++;
+            document.getElementById('counter').textContent = problemCount;
+            
+            // Display the problem
+            document.getElementById('problem').textContent = `${num1} ${operator} ${num2} = ?`;
+            
+            showingAnswer = false;
+        }
+
+        function showAnswer() {
+            const problemText = document.getElementById('problem').textContent;
+            document.getElementById('problem').innerHTML = problemText.replace('?', `<span class="blue-answer">${currentAnswer}</span>`);
+            showingAnswer = true;
+        }
+
+        function handleKeyPress(event) {
+            if (event.key === 'Enter' && !document.getElementById('practice').classList.contains('hidden')) {
+                if (showingAnswer) {
+                    generateProblem();
+                } else {
+                    showAnswer();
+                }
+            }
+        }
+
+        // Add event listener for keypress
+        document.addEventListener('keydown', handleKeyPress);
+    </script>
+</body>
+</html> 
