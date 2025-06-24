@@ -88,6 +88,8 @@
         <button onclick="startPractice('addition', 10)">Addition up to 10</button>
         <button onclick="startPractice('addition', 20)">Addition 10-20</button>
         <button onclick="startPractice('addition-multiples', 100)">Addition Multiples of 10 (up to 100)</button>
+        <button onclick="startPractice('multiples-5-10-addition', 200)">Addition by 5/10 (Multiples up to 200)</button>
+        <button onclick="startPractice('multiples-5-10-subtraction', 200)">Subtraction by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('subtraction', 20)">Subtraction</button>
     </div>
     
@@ -125,6 +127,108 @@
                             // Add the reverse if different numbers
                             if (multiples[i] !== multiples[j]) {
                                 problems.push([multiples[j], multiples[i], '+']);
+                            }
+                        }
+                    }
+                }
+            } else if (operation === 'multiples-5-10') {
+                // Generate multiples of 5 and 10 up to maxSum
+                const multiples = [];
+                for (let i = 5; i <= maxSum; i += 5) {
+                    multiples.push(i);
+                }
+                
+                // For each multiple, create problems adding/subtracting 5 or 10
+                for (let multiple of multiples) {
+                    // Add 5
+                    if (multiple + 5 <= maxSum) {
+                        problems.push([multiple, 5, '+']);
+                    }
+                    // Add 10
+                    if (multiple + 10 <= maxSum) {
+                        problems.push([multiple, 10, '+']);
+                    }
+                    // Subtract 5 (only if result is positive and a multiple of 5)
+                    if (multiple - 5 > 0) {
+                        problems.push([multiple, 5, '-']);
+                    }
+                    // Subtract 10 (only if result is positive and a multiple of 5)
+                    if (multiple - 10 > 0) {
+                        problems.push([multiple, 10, '-']);
+                    }
+                }
+                
+                // Also create problems where we start with a multiple and add/subtract to get another multiple
+                for (let i = 0; i < multiples.length; i++) {
+                    for (let j = 0; j < multiples.length; j++) {
+                        if (i !== j) {
+                            let diff = Math.abs(multiples[i] - multiples[j]);
+                            if (diff === 5 || diff === 10) {
+                                if (multiples[i] > multiples[j]) {
+                                    problems.push([multiples[i], diff, '-']);
+                                } else {
+                                    problems.push([multiples[j], diff, '-']);
+                                }
+                            }
+                        }
+                    }
+                }
+            } else if (operation === 'multiples-5-10-addition') {
+                // Generate multiples of 5 and 10 up to maxSum
+                const multiples = [];
+                for (let i = 5; i <= maxSum; i += 5) {
+                    multiples.push(i);
+                }
+                
+                // For each multiple, create addition problems with 5 or 10
+                for (let multiple of multiples) {
+                    // Add 5
+                    if (multiple + 5 <= maxSum) {
+                        problems.push([multiple, 5, '+']);
+                    }
+                    // Add 10
+                    if (multiple + 10 <= maxSum) {
+                        problems.push([multiple, 10, '+']);
+                    }
+                }
+                
+                // Also create problems where we add 5 or 10 to get from one multiple to another
+                for (let i = 0; i < multiples.length; i++) {
+                    for (let j = 0; j < multiples.length; j++) {
+                        if (i !== j && multiples[j] > multiples[i]) {
+                            let diff = multiples[j] - multiples[i];
+                            if (diff === 5 || diff === 10) {
+                                problems.push([multiples[i], diff, '+']);
+                            }
+                        }
+                    }
+                }
+            } else if (operation === 'multiples-5-10-subtraction') {
+                // Generate multiples of 5 and 10 up to maxSum
+                const multiples = [];
+                for (let i = 5; i <= maxSum; i += 5) {
+                    multiples.push(i);
+                }
+                
+                // For each multiple, create subtraction problems with 5 or 10
+                for (let multiple of multiples) {
+                    // Subtract 5 (only if result is positive and a multiple of 5)
+                    if (multiple - 5 > 0) {
+                        problems.push([multiple, 5, '-']);
+                    }
+                    // Subtract 10 (only if result is positive and a multiple of 5)
+                    if (multiple - 10 > 0) {
+                        problems.push([multiple, 10, '-']);
+                    }
+                }
+                
+                // Also create problems where we subtract 5 or 10 to get from one multiple to another
+                for (let i = 0; i < multiples.length; i++) {
+                    for (let j = 0; j < multiples.length; j++) {
+                        if (i !== j && multiples[i] > multiples[j]) {
+                            let diff = multiples[i] - multiples[j];
+                            if (diff === 5 || diff === 10) {
+                                problems.push([multiples[i], diff, '-']);
                             }
                         }
                     }
