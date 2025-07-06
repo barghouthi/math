@@ -177,7 +177,8 @@
     <div id="menu" class="menu">
         <h1>Choose Your Practice</h1>
         <button onclick="startPractice('addition', 10)">Addition up to 10</button>
-        <button onclick="startPractice('addition', 20)">Addition 10-20</button>
+        <button onclick="startPractice('addition-1-20', 20)">Addition 1-20</button>
+        <button onclick="startPractice('addition-10-20', 20)">Addition 10-20</button>
         <button onclick="startPractice('addition-multiples', 100)">Addition Multiples of 10 (up to 100)</button>
         <button onclick="startPractice('multiples-5-10-addition', 200)">Addition by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('multiples-5-10-subtraction', 200)">Subtraction by 5/10 (Multiples up to 200)</button>
@@ -201,7 +202,16 @@
 
         function generateProblems(operation, maxSum) {
             const problems = [];
-            let minSum = maxSum === 20 ? 10 : 1;
+            let minSum = 1;
+            
+            // Handle different addition ranges
+            if (operation === 'addition-10-20') {
+                minSum = 10; // Addition 10-20
+            } else if (operation === 'addition-1-20') {
+                minSum = 1;  // Addition 1-20
+            } else if (operation === 'addition') {
+                minSum = 1;  // Addition up to 10 or other ranges
+            }
             
             if (operation === 'addition-multiples') {
                 // Generate multiples of 10 up to maxSum
@@ -327,17 +337,19 @@
                 }
             } else {
                 for (let sum = minSum; sum <= maxSum; sum++) {
-                    if (operation === 'addition') {
-                        for (let num1 = 0; num1 <= sum; num1++) {
+                    if (operation === 'addition' || operation === 'addition-1-20' || operation === 'addition-10-20') {
+                        for (let num1 = 1; num1 < sum; num1++) {
                             let num2 = sum - num1;
-                            problems.push([num1, num2, '+']);
+                            if (num2 > 0) {
+                                problems.push([num1, num2, '+']);
+                            }
                         }
                     } else if (operation === 'subtraction') {
                         // For subtraction, we want results from 1 to maxSum
-                        // All operands (minuend and subtrahend) should be 0-20
+                        // All operands (minuend and subtrahend) should be 1-20
                         // At least one operand should be < 10
                         for (let result = 1; result <= maxSum; result++) {
-                            for (let subtrahend = 0; subtrahend <= 20; subtrahend++) {
+                            for (let subtrahend = 1; subtrahend <= 20; subtrahend++) {
                                 let minuend = result + subtrahend;
                                 if (minuend <= 20 && (minuend < 10 || subtrahend < 10)) {
                                     problems.push([minuend, subtrahend, '-']);
