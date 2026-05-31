@@ -66,6 +66,11 @@
         .blue-answer {
             color: blue;
         }
+
+        .problem.flashcard {
+            font-size: 14em;
+            font-weight: bold;
+        }
         
         .counter {
             position: absolute;
@@ -125,7 +130,11 @@
                 margin: 15px 0;
                 padding: 15px;
             }
-            
+
+            .problem.flashcard {
+                font-size: 9em;
+            }
+
             .counter {
                 font-size: 1.3em;
                 top: 5px;
@@ -160,6 +169,10 @@
                 margin: 10px 0;
                 padding: 10px;
             }
+
+            .problem.flashcard {
+                font-size: 7em;
+            }
             
             .counter {
                 font-size: 1.2em;
@@ -183,6 +196,8 @@
         <button onclick="startPractice('multiples-5-10-addition', 200)">Addition by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('multiples-5-10-subtraction', 200)">Subtraction by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('subtraction', 20)">Subtraction</button>
+        <button onclick="startPractice('flashcards-1-10', 10)">Random 1-10 Flash Cards</button>
+        <button onclick="startPractice('flashcards-az', 0)">A-Z Flash Cards</button>
     </div>
     
     <div id="practice" class="hidden">
@@ -213,7 +228,17 @@
                 minSum = 1;  // Addition up to 10 or other ranges
             }
             
-            if (operation === 'addition-multiples') {
+            if (operation === 'flashcards-1-10') {
+                // Single number flash cards 1-10
+                for (let i = 1; i <= 10; i++) {
+                    problems.push([i, null, 'flash']);
+                }
+            } else if (operation === 'flashcards-az') {
+                // Single letter flash cards A-Z
+                for (let i = 65; i <= 90; i++) {
+                    problems.push([String.fromCharCode(i), null, 'flash']);
+                }
+            } else if (operation === 'addition-multiples') {
                 // Generate multiples of 10 up to maxSum
                 const multiples = [];
                 for (let i = 10; i <= maxSum; i += 10) {
@@ -384,20 +409,32 @@
             // Pick uniformly from all possible problems
             const randomIndex = Math.floor(Math.random() * allProblems.length);
             const [num1, num2, operator] = allProblems[randomIndex];
-            
+
+            // Increment and display counter
+            problemCount++;
+            document.getElementById('counter').textContent = problemCount;
+
+            const problemEl = document.getElementById('problem');
+
+            if (operator === 'flash') {
+                // Flash card: just show the value, large, no answer to reveal
+                problemEl.classList.add('flashcard');
+                problemEl.textContent = `${num1}`;
+                showingAnswer = false;
+                return;
+            }
+
+            problemEl.classList.remove('flashcard');
+
             if (operator === '+') {
                 currentAnswer = num1 + num2;
             } else {
                 currentAnswer = num1 - num2;
             }
-            
-            // Increment and display counter
-            problemCount++;
-            document.getElementById('counter').textContent = problemCount;
-            
+
             // Display the problem
             document.getElementById('problem').textContent = `${num1} ${operator} ${num2} = ?`;
-            
+
             showingAnswer = false;
         }
 
@@ -407,9 +444,13 @@
             showingAnswer = true;
         }
 
+        function isFlashcardMode() {
+            return currentMode === 'flashcards-1-10' || currentMode === 'flashcards-az';
+        }
+
         function handleKeyPress(event) {
             if (event.key === 'Enter' && !document.getElementById('practice').classList.contains('hidden')) {
-                if (showingAnswer) {
+                if (isFlashcardMode() || showingAnswer) {
                     generateProblem();
                 } else {
                     showAnswer();
@@ -418,7 +459,7 @@
         }
 
         function handleProblemClick() {
-            if (showingAnswer) {
+            if (isFlashcardMode() || showingAnswer) {
                 generateProblem();
             } else {
                 showAnswer();
