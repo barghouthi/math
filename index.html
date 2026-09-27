@@ -192,6 +192,8 @@
         <h1>Choose Your Practice</h1>
         <button onclick="startPractice('flashcards-1-10', 10)">Random 1-10 Flash Cards</button>
         <button onclick="startPractice('flashcards-az', 0)">A-Z Flash Cards</button>
+        <button onclick="startPractice('addition', 5)">Addition up to 5</button>
+        <button onclick="startPractice('addition-operands-5', 5)">Addition with Numbers up to 5</button>
         <button onclick="startPractice('addition', 10)">Addition up to 10</button>
         <button onclick="startPractice('addition-1-20', 20)">Addition 1-20</button>
         <button onclick="startPractice('addition-10-20', 20)">Addition 10-20</button>
@@ -238,6 +240,13 @@
                 // Single letter flash cards A-Z
                 for (let i = 65; i <= 90; i++) {
                     problems.push([String.fromCharCode(i), null, 'flash']);
+                }
+            } else if (operation === 'addition-operands-5') {
+                // Each number is at most maxSum (so the sum is at most 2 * maxSum)
+                for (let num1 = 1; num1 <= maxSum; num1++) {
+                    for (let num2 = 1; num2 <= maxSum; num2++) {
+                        problems.push([num1, num2, '+']);
+                    }
                 }
             } else if (operation === 'addition-multiples') {
                 // Generate multiples of 10 up to maxSum
