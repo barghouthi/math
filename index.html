@@ -202,6 +202,14 @@
         <button onclick="startPractice('multiples-5-10-addition', 200)">Addition by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('multiples-5-10-subtraction', 200)">Subtraction by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('subtraction', 20)">Subtraction</button>
+        <button onclick="startPractice('times-table', 2)">2 Times Table</button>
+        <button onclick="startPractice('times-table', 3)">3 Times Table</button>
+        <button onclick="startPractice('times-table', 4)">4 Times Table</button>
+        <button onclick="startPractice('times-table', 5)">5 Times Table</button>
+        <button onclick="startPractice('times-table', 6)">6 Times Table</button>
+        <button onclick="startPractice('times-table', 7)">7 Times Table</button>
+        <button onclick="startPractice('times-table', 8)">8 Times Table</button>
+        <button onclick="startPractice('times-table', 9)">9 Times Table</button>
     </div>
     
     <div id="practice" class="hidden">
@@ -241,6 +249,12 @@
                 // Single number flash cards 10-20
                 for (let i = 10; i <= 20; i++) {
                     problems.push([i, null, 'flash']);
+                }
+            } else if (operation === 'times-table') {
+                // Multiplication table for maxSum, skipping x2 and x10
+                for (let k = 1; k <= 9; k++) {
+                    if (k === 2) continue;
+                    problems.push([maxSum, k, '×']);
                 }
             } else if (operation === 'flashcards-az') {
                 // Single letter flash cards A-Z
@@ -444,6 +458,8 @@
 
             if (operator === '+') {
                 currentAnswer = num1 + num2;
+            } else if (operator === '×') {
+                currentAnswer = num1 * num2;
             } else {
                 currentAnswer = num1 - num2;
             }
