@@ -191,6 +191,7 @@
     <div id="menu" class="menu">
         <h1>Choose Your Practice</h1>
         <button onclick="startPractice('flashcards-1-10', 10)">Random 1-10 Flash Cards</button>
+        <button onclick="startPractice('flashcards-10-20', 20)">Random 10-20 Flash Cards</button>
         <button onclick="startPractice('flashcards-az', 0)">A-Z Flash Cards</button>
         <button onclick="startPractice('addition', 5)">Addition up to 5</button>
         <button onclick="startPractice('addition-operands-5', 5)">Addition with Numbers up to 5</button>
@@ -234,6 +235,11 @@
             if (operation === 'flashcards-1-10') {
                 // Single number flash cards 1-10
                 for (let i = 1; i <= 10; i++) {
+                    problems.push([i, null, 'flash']);
+                }
+            } else if (operation === 'flashcards-10-20') {
+                // Single number flash cards 10-20
+                for (let i = 10; i <= 20; i++) {
                     problems.push([i, null, 'flash']);
                 }
             } else if (operation === 'flashcards-az') {
@@ -455,7 +461,7 @@
         }
 
         function isFlashcardMode() {
-            return currentMode === 'flashcards-1-10' || currentMode === 'flashcards-az';
+            return currentMode === 'flashcards-1-10' || currentMode === 'flashcards-10-20' || currentMode === 'flashcards-az';
         }
 
         function handleKeyPress(event) {
