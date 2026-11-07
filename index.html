@@ -49,7 +49,7 @@
         }
         
         .problem {
-            font-size: 4em;
+            font-size: min(12em, 13vw); /* desktop; phones override below */
             margin: 20px 0;
             cursor: pointer;
             user-select: none;
@@ -263,14 +263,14 @@
         <button onclick="startPractice('multiples-5-10-addition', 200)">Addition by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('multiples-5-10-subtraction', 200)">Subtraction by 5/10 (Multiples up to 200)</button>
         <button onclick="startPractice('subtraction', 20)">Subtraction</button>
-        <button class="tt" style="background:#ff5c5c" onclick="startPractice('times-table', 2)">2 Times Table</button>
-        <button class="tt" style="background:#ff9f1c" onclick="startPractice('times-table', 3)">3 Times Table</button>
-        <button class="tt" style="background:#f7c600" onclick="startPractice('times-table', 4)">4 Times Table</button>
-        <button class="tt" style="background:#2ec4b6" onclick="startPractice('times-table', 5)">5 Times Table</button>
-        <button class="tt" style="background:#3a86ff" onclick="startPractice('times-table', 6)">6 Times Table</button>
-        <button class="tt" style="background:#8338ec" onclick="startPractice('times-table', 7)">7 Times Table</button>
-        <button class="tt" style="background:#ff006e" onclick="startPractice('times-table', 8)">8 Times Table</button>
-        <button class="tt" style="background:#06d6a0" onclick="startPractice('times-table', 9)">9 Times Table</button>
+        <button onclick="startPractice('times-table', 2)">2 Times Table</button>
+        <button onclick="startPractice('times-table', 3)">3 Times Table</button>
+        <button onclick="startPractice('times-table', 4)">4 Times Table</button>
+        <button onclick="startPractice('times-table', 5)">5 Times Table</button>
+        <button onclick="startPractice('times-table', 6)">6 Times Table</button>
+        <button onclick="startPractice('times-table', 7)">7 Times Table</button>
+        <button onclick="startPractice('times-table', 8)">8 Times Table</button>
+        <button onclick="startPractice('times-table', 9)">9 Times Table</button>
     </div>
     
     <div id="practice" class="hidden">
@@ -314,9 +314,8 @@
                     problems.push([i, null, 'flash']);
                 }
             } else if (operation === 'times-table') {
-                // Multiplication table for maxSum, skipping x2 and x10
-                for (let k = 1; k <= 9; k++) {
-                    if (k === 2) continue;
+                // Multiplication table for maxSum, skipping x1, x2 and x10
+                for (let k = 3; k <= 9; k++) {
                     problems.push([maxSum, k, '×']);
                 }
             } else if (operation === 'flashcards-az') {
@@ -486,7 +485,7 @@
             allProblems = generateProblems(operation, maxNum);
             problemCount = 0;
 
-            setFunMode(operation === 'times-table' ? maxNum : null);
+            setFunMode(selectedTheme);
             
             document.getElementById('menu').classList.add('hidden');
             document.getElementById('practice').classList.remove('hidden');
@@ -515,7 +514,10 @@
             if (operator === 'flash') {
                 // Flash card: just show the value, large, no answer to reveal
                 problemEl.classList.add('flashcard');
-                problemEl.textContent = `${num1}`;
+                const color = FUN_COLORS[Math.floor(Math.random() * FUN_COLORS.length)];
+                problemEl.innerHTML = `<span class="fun-num" style="color:${color}">${num1}</span>`;
+                popProblem(problemEl);
+                celebrate(problemEl, false); // card fills the screen: no room for a rainbow
                 showingAnswer = false;
                 return;
             }
@@ -534,13 +536,11 @@
             if (funMode) {
                 problemEl.innerHTML =
                     `<span class="fun-num" style="color:${FUN_COLORS[0]}">${num1}</span> ` +
-                    `<span class="fun-num" style="color:${FUN_COLORS[1]}">×</span> ` +
+                    `<span class="fun-num" style="color:${FUN_COLORS[1]}">${operator}</span> ` +
                     `<span class="fun-num" style="color:${FUN_COLORS[2]}">${num2}</span> ` +
                     `<span class="fun-num" style="color:${FUN_COLORS[3]}">=</span> ` +
                     `<span class="fun-num" id="answer-slot" style="color:#999">?</span>`;
-                problemEl.classList.remove('fun-pop');
-                void problemEl.offsetWidth; // restart animation
-                problemEl.classList.add('fun-pop');
+                popProblem(problemEl);
             } else {
                 problemEl.textContent = `${num1} ${operator} ${num2} = ?`;
             }
@@ -553,8 +553,7 @@
                 const slot = document.getElementById('answer-slot');
                 slot.outerHTML = `<span class="fun-answer">${currentAnswer}</span>`;
                 showingAnswer = true;
-                const r = document.getElementById('problem').getBoundingClientRect();
-                launchConfetti(r.left + r.width / 2, r.top + r.height / 2);
+                celebrate(document.getElementById('problem'));
                 return;
             }
             const problemText = document.getElementById('problem').textContent;
@@ -585,47 +584,78 @@
         }
 
         // ---------- Fun mode (times tables) ----------
-        const FUN_THEMES = {
-            2: ['#ff9a9e', '#ff5c5c'], 3: ['#ffd166', '#ff9f1c'], 4: ['#fff3a0', '#f7c600'],
-            5: ['#9ef0e6', '#2ec4b6'], 6: ['#a0c4ff', '#3a86ff'], 7: ['#cdb4ff', '#8338ec'],
-            8: ['#ffafcc', '#ff006e'], 9: ['#b9fbc0', '#06d6a0'],
-        };
+        // [light, bold] pairs; menu buttons cycle through these in order
+        const FUN_THEMES = [
+            ['#ff9a9e', '#ff5c5c'], ['#ffd166', '#ff9f1c'], ['#fff3a0', '#f7c600'],
+            ['#9ef0e6', '#2ec4b6'], ['#a0c4ff', '#3a86ff'], ['#cdb4ff', '#8338ec'],
+            ['#ffafcc', '#ff006e'], ['#b9fbc0', '#06d6a0'],
+        ];
+        let selectedTheme = 0;
+
+        // Color every menu button; remember which one was tapped (capture runs before its onclick)
+        document.querySelectorAll('#menu button').forEach((btn, i) => {
+            btn.classList.add('tt');
+            btn.style.background = FUN_THEMES[i % FUN_THEMES.length][1];
+            btn.dataset.theme = i % FUN_THEMES.length;
+        });
+        document.getElementById('menu').addEventListener('click', (e) => {
+            const btn = e.target.closest('button');
+            if (btn) selectedTheme = Number(btn.dataset.theme);
+        }, true);
+
+        function popProblem(el) {
+            el.classList.remove('fun-pop');
+            void el.offsetWidth; // restart animation
+            el.classList.add('fun-pop');
+        }
         const FUN_COLORS = ['#ff006e', '#8338ec', '#3a86ff', '#06d6a0'];
-        const CONFETTI_COLORS = ['#ff5c5c', '#ff9f1c', '#f7c600', '#2ec4b6', '#3a86ff', '#8338ec', '#ff006e', '#06d6a0'];
         let funMode = false;
 
         function setFunMode(table) {
             funMode = table !== null;
             document.body.classList.toggle('fun', funMode);
             if (funMode) {
-                const [a, b] = FUN_THEMES[table] || ['#a0c4ff', '#8338ec'];
+                const [a, b] = FUN_THEMES[table] || FUN_THEMES[0];
                 document.body.style.setProperty('--fun-a', a);
                 document.body.style.setProperty('--fun-b', b);
             }
         }
 
+        // ---------- Celebration: rainbow + confetti, stars and hearts ----------
         const confettiCanvas = document.getElementById('confetti');
         const confettiCtx = confettiCanvas.getContext('2d');
+        const RAINBOW = ['#ff0000', '#ff8800', '#ffdd00', '#00cc44', '#0099ff', '#4b0082', '#9b30ff'];
         let confettiPieces = [];
+        let rainbows = [];
         let confettiRunning = false;
 
-        function launchConfetti(x, y) {
+        function celebrate(el, withRainbow = true) {
+            const r = el.getBoundingClientRect();
             const dpr = window.devicePixelRatio || 1;
-            confettiCanvas.width = window.innerWidth * dpr;
-            confettiCanvas.height = window.innerHeight * dpr;
+            if (confettiCanvas.width !== window.innerWidth * dpr || confettiCanvas.height !== window.innerHeight * dpr) {
+                confettiCanvas.width = window.innerWidth * dpr;
+                confettiCanvas.height = window.innerHeight * dpr;
+            }
             confettiCtx.setTransform(dpr, 0, 0, dpr, 0, 0);
+
+            const x = r.left + r.width / 2, y = r.top + r.height / 2;
+            // Rainbow arches above the card, legs resting on its top edge
+            const radius = Math.max(60, Math.min(r.width * 0.55, window.innerWidth * 0.45, r.top - 10));
+            rainbows = withRainbow ? [{ x, y: r.top - 4, radius, life: 0 }] : [];
+
             for (let i = 0; i < 150; i++) {
                 const angle = Math.random() * Math.PI * 2;
                 const speed = 4 + Math.random() * 10;
+                const roll = Math.random();
                 confettiPieces.push({
                     x, y,
                     vx: Math.cos(angle) * speed,
                     vy: Math.sin(angle) * speed - 6,
-                    w: 6 + Math.random() * 8,
-                    h: 4 + Math.random() * 6,
+                    shape: roll < 0.4 ? 'rect' : roll < 0.7 ? 'star' : 'heart',
+                    size: 12 + Math.random() * 14,
                     rot: Math.random() * Math.PI,
-                    vrot: (Math.random() - 0.5) * 0.4,
-                    color: CONFETTI_COLORS[Math.floor(Math.random() * CONFETTI_COLORS.length)],
+                    vrot: (Math.random() - 0.5) * 0.3,
+                    color: `hsl(${Math.floor(Math.random() * 360)}, 95%, 55%)`,
                     life: 0,
                 });
             }
@@ -635,8 +665,52 @@
             }
         }
 
+        function drawStar(ctx, size) {
+            ctx.beginPath();
+            for (let i = 0; i < 10; i++) {
+                const rad = i % 2 === 0 ? size : size * 0.45;
+                const a = (i * Math.PI) / 5 - Math.PI / 2;
+                ctx.lineTo(Math.cos(a) * rad, Math.sin(a) * rad);
+            }
+            ctx.closePath();
+            ctx.fill();
+        }
+
+        function drawHeart(ctx, size) {
+            const s = size / 16;
+            ctx.beginPath();
+            ctx.moveTo(0, 5 * s);
+            ctx.bezierCurveTo(-14 * s, -4 * s, -8 * s, -16 * s, 0, -8 * s);
+            ctx.bezierCurveTo(8 * s, -16 * s, 14 * s, -4 * s, 0, 5 * s);
+            ctx.fill();
+        }
+
+        function drawRainbow(rb) {
+            // Grow in, hold, then fade out
+            const grow = Math.min(1, rb.life / 15);
+            const alpha = rb.life < 60 ? 1 : Math.max(0, 1 - (rb.life - 60) / 30);
+            const band = rb.radius / 14;
+            confettiCtx.save();
+            confettiCtx.globalAlpha = alpha * 0.9;
+            confettiCtx.lineWidth = band;
+            RAINBOW.forEach((color, i) => {
+                confettiCtx.strokeStyle = color;
+                confettiCtx.beginPath();
+                confettiCtx.arc(rb.x, rb.y, rb.radius - i * band,
+                    Math.PI, Math.PI + Math.PI * grow);
+                confettiCtx.stroke();
+            });
+            confettiCtx.restore();
+        }
+
         function tickConfetti() {
             confettiCtx.clearRect(0, 0, window.innerWidth, window.innerHeight);
+            for (const rb of rainbows) {
+                rb.life++;
+                drawRainbow(rb);
+            }
+            rainbows = rainbows.filter(rb => rb.life < 90);
+
             for (const p of confettiPieces) {
                 p.vy += 0.3;          // gravity
                 p.vx *= 0.98;         // air drag
@@ -648,11 +722,19 @@
                 confettiCtx.translate(p.x, p.y);
                 confettiCtx.rotate(p.rot);
                 confettiCtx.fillStyle = p.color;
-                confettiCtx.fillRect(-p.w / 2, -p.h / 2, p.w, p.h * Math.abs(Math.cos(p.life * 0.15)));
+                if (p.shape === 'star') {
+                    drawStar(confettiCtx, p.size * 0.6);
+                } else if (p.shape === 'heart') {
+                    drawHeart(confettiCtx, p.size);
+                } else {
+                    // Paper confetti flutters by squashing vertically
+                    confettiCtx.fillRect(-p.size / 2, -p.size / 4, p.size, (p.size / 2) * Math.abs(Math.cos(p.life * 0.15)));
+                }
                 confettiCtx.restore();
             }
             confettiPieces = confettiPieces.filter(p => p.y < window.innerHeight + 40 && p.life < 300);
-            if (confettiPieces.length > 0) {
+
+            if (confettiPieces.length > 0 || rainbows.length > 0) {
                 requestAnimationFrame(tickConfetti);
             } else {
                 confettiRunning = false;
