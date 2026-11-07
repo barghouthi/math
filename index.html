@@ -566,12 +566,10 @@
         }
 
         function handleKeyPress(event) {
-            if (event.key === 'Enter' && !document.getElementById('practice').classList.contains('hidden')) {
-                if (isFlashcardMode() || showingAnswer) {
-                    generateProblem();
-                } else {
-                    showAnswer();
-                }
+            if ((event.key === 'Enter' || event.key === ' ') && !document.getElementById('practice').classList.contains('hidden')) {
+                // Stop space from scrolling or re-clicking a focused button (e.g. Menu)
+                event.preventDefault();
+                handleProblemClick();
             }
         }
 
